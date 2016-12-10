@@ -7,7 +7,14 @@
 -- of patent rights can be found in the PATENTS file in the same directory.
 --
 
-package.path = package.path .. ';../?.lua'
+function script_path()
+   local str = debug.getinfo(2, "S").source:sub(2)
+   return str:match("(.*/)")
+end
+
+-- Now this code can be ran from anywhere.
+--package.path = package.path .. ';../?.lua'
+package.path = package.path .. ';' .. script_path() .. '/../?.lua'
 
 local utils = require 'utils.utils'
 
@@ -51,7 +58,7 @@ local opt = pl.lapp[[
     --single_move_return                     Use single move return (When we only have one choice, return the move immediately)
     --expand_search_endgame                  Whether we expand the search in end game.
     --default_policy    (default "v2")       The default policy used. Could be "simple", "v2".
-    --default_policy_pattern_file (default "../models/playout-model.bin") The patter file
+    --default_policy_pattern_file (default script_path() .. "/../models/playout-model.bin") The patter file
     --default_policy_temperature  (default 0.125)   The temperature we use for sampling.
     --online_model_alpha         (default 0.0)      Whether we use online model and its alpha
     --online_prior_mixture_ratio (default 0.0)      Online prior mixture ratio.
@@ -95,7 +102,7 @@ local function load_params_for_formal_game()
     opt.single_move_return = false --                     Use single move return (When we only have one choice, return the move immediately)
     opt.expand_search_endgame = false --                  Whether we expand the search in end game.
     opt.default_policy= "v2" --    (default "v2")       The default policy used. Could be "simple", "pachi", "v2".
-    opt.default_policy_pattern_file = "../models/playout-model.bin" -- The default policy pattern file
+    opt.default_policy_pattern_file = script_path() .. "/../models/playout-model.bin" -- The default policy pattern file
     opt.default_policy_temperature = 0.5
     opt.online_model_alpha = 0.0 --         (default 0.0)      Whether we use online model and its alpha
     opt.online_prior_mixture_ratio = 0.0 -- (default 0.0)      Online prior mixture ratio.
@@ -335,4 +342,3 @@ local opt2 = {
 
 local cnnplayer = CNNPlayerV2("CNNPlayerV2MCTS", "go_player_v2_mcts", "1.0", callbacks, opt2)
 cnnplayer:mainloop()
-
