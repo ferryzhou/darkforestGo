@@ -13,8 +13,8 @@ function script_path()
 end
 
 -- Now this code can be ran from anywhere.
---package.path = package.path .. ';../?.lua'
-package.path = package.path .. ';' .. script_path() .. '/../?.lua'
+-- package.path = package.path .. ';../?.lua'
+package.path = package.path .. ';' .. script_path() .. '../?.lua'
 
 local utils = require 'utils.utils'
 
@@ -58,7 +58,7 @@ local opt = pl.lapp[[
     --single_move_return                     Use single move return (When we only have one choice, return the move immediately)
     --expand_search_endgame                  Whether we expand the search in end game.
     --default_policy    (default "v2")       The default policy used. Could be "simple", "v2".
-    --default_policy_pattern_file (default script_path() .. "/../models/playout-model.bin") The patter file
+    --default_policy_pattern_file (default "../models/playout-model.bin") The patter file
     --default_policy_temperature  (default 0.125)   The temperature we use for sampling.
     --online_model_alpha         (default 0.0)      Whether we use online model and its alpha
     --online_prior_mixture_ratio (default 0.0)      Online prior mixture ratio.
@@ -79,6 +79,9 @@ local opt = pl.lapp[[
     --use_formal_params                               If so, then use formal parameters
 ]]
 
+-- Enable the code to be run from anywhere.
+opt.default_policy_pattern_file = script_path() .. "../models/playout-model.bin"
+
 local function load_params_for_formal_game()
     opt.rollout = 1000000  --       (default 1000)         The number of rollout we use.
     opt.dcnn_rollout = -1          -- The number of dcnn rollout we use (If we set to -1, then it is the same as rollout), if cpu_only is set, then dcnn_rollout is not used.
@@ -93,7 +96,7 @@ local function load_params_for_formal_game()
     opt.num_tree_thread = 16 --   (default 16)         The number of threads used to expand MCTS tree.
     opt.num_virtual_games = 5
     opt.acc_prob_thres = 1 --    (default 0.8)        Accumulated probability threshold. We remove the remove if by the time we see it, the accumulated prob is greater than this thres.
-    opt.max_num_move = 7 --      (default 20)          Maximum number of moves to consider in each tree node.
+    opt.max_num_move = 15 --      (default 20)          Maximum number of moves to consider in each tree node.
     opt.min_num_move = 1    --  (default 1)          Minimum number of moves to consider in each tree node.
     opt.decision_mixture_ratio = 5.0 -- (default 5.0)   Mixture MCTS count ratio with cnn_confidence.
     opt.win_rate_thres = 0.1  --  (default 0.0)        If the win rate is lower than that, resign.
@@ -107,7 +110,7 @@ local function load_params_for_formal_game()
     opt.online_model_alpha = 0.0 --         (default 0.0)      Whether we use online model and its alpha
     opt.online_prior_mixture_ratio = 0.0 -- (default 0.0)      Online prior mixture ratio.
     opt.use_rave = false --                               Whether we use RAVE.
-    opt.use_cnn_final_score = false --                    Whether we use CNN final score.
+    opt.use_cnn_final_score = true --                    Whether we use CNN final score.
     opt.min_ply_to_use_cnn_final_score = 100 -- (default 100)     When to use cnn final score.
     opt.final_mixture_ratio = 0.5 -- (default 0.5)    The mixture ratio we used.
     opt.use_old_uct = false
@@ -116,9 +119,9 @@ local function load_params_for_formal_game()
     opt.cpu_only = false     --                                   Whether we only use fast rollout.
     opt.expand_n_thres = 0 --              (default 0)      Statistics collected before expand.
     opt.sample_topn = -1 --                   (default -1)     If use v2, topn we should sample..
-    opt.rule = "jp"  --             (default cn)         Use JP rule : jp, use CN rule: cn
+    opt.rule = "cn"  --             (default cn)         Use JP rule : jp, use CN rule: cn
     opt.num_playout_per_rollout = 1
-    opt.save_sgf_per_move = true
+    opt.save_sgf_per_move = false
 end
 
 if opt.use_formal_params then
@@ -340,5 +343,7 @@ local opt2 = {
     save_sgf_per_move = opt.save_sgf_per_move
 }
 
-local cnnplayer = CNNPlayerV2("CNNPlayerV2MCTS", "go_player_v2_mcts", "1.0", callbacks, opt2)
+print(opt)
+
+local cnnplayer = CNNPlayerV2("CNNPlayerV2MCTS", "go_player_v2_mcts", "1.0", callbacks, opt)
 cnnplayer:mainloop()
